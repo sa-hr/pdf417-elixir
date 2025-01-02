@@ -44,8 +44,14 @@ defmodule PDF417.PNGEncoder do
   end
 
   defp width([hd | _tail]) do
-    # The stop pattern 0x3fa29 is 18 bits long, so we have an extra bar at the end of the line.
-    length(hd) * (17 * @bar_width) + 2 * @quiet_zone + @bar_width
+    # Each codeword is 17 bits, but need to account for start and stop patterns
+    # Start pattern is 17 bits (like normal codewords)
+    # Stop pattern is 18 bits (one extra)
+    # The total number of bits is: (n-2)*17 + 17 + 18, where n is the number of codewords
+    num_codewords = length(hd)
+    # Regular codewords + start + stop
+    total_bits = (num_codewords - 2) * 17 + 17 + 18
+    total_bits * @bar_width + 2 * @quiet_zone
   end
 
   defp height(matrix), do: length(matrix) * 4 * @bar_width + 2 * @quiet_zone
@@ -63,7 +69,26 @@ defmodule PDF417.PNGEncoder do
 
     row_data =
       line
-      |> Enum.map(fn int -> Integer.digits(int, 2) end)
+      |> Enum.map(fn int ->
+        case int do
+          # Handle nil values with all zeros
+          nil ->
+            List.duplicate(0, 17)
+
+          int when is_integer(int) ->
+            # Handle the stop pattern specially (it's 18 bits)
+            if int == List.last(line) do
+              digits = Integer.digits(int, 2)
+              # Pad to 18 bits if necessary
+              List.duplicate(0, 18 - length(digits)) ++ digits
+            else
+              # Regular 17-bit codewords
+              digits = Integer.digits(int, 2)
+              # Pad to 17 bits if necessary
+              List.duplicate(0, 17 - length(digits)) ++ digits
+            end
+        end
+      end)
       |> List.flatten()
       |> convert_to_bars()
 

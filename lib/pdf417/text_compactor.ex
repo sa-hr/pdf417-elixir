@@ -5,9 +5,9 @@ defmodule PDF417.TextCompactor do
 
   @submodes %{
     "UPP" =>
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZ\s" |> String.graphemes() |> Enum.with_index() |> Map.new(),
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZĆČŽĐŠ\s" |> String.graphemes() |> Enum.with_index() |> Map.new(),
     "LOW" =>
-      "abcdefghijklmnopqrstuvwxyz\s" |> String.graphemes() |> Enum.with_index() |> Map.new(),
+      "abcdefghijklmnopqrstuvwxyzćčžđš\s" |> String.graphemes() |> Enum.with_index() |> Map.new(),
     "MIX" =>
       "0123456789&\r\t,:#-.$/+%*=^" |> String.graphemes() |> Enum.with_index() |> Map.new(),
     "PUN" =>
